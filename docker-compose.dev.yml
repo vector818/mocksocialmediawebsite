@@ -6,10 +6,23 @@ services:
     build:
       context: ./backend
       dockerfile: ./Dockerfile.dev
+    depends_on:
+      - mysql-db
     ports:
       - "8081:8081"
     environment:
-      - MYSQL_HOST=host.docker.internal
+      NODE_ENV: development
+      MYSQL_HOST: mysql-db
+      DB_HOST: mysql-db
+      DB_PORT: "3306"
+      DB_NAME: mocksocialmedia
+      DB_USERNAME: mocksocial
+      DB_PASSWORD: mocksocialpassword
+      DB_DIALECT: mysql
+      JWT_SECRET: dev-admin-secret
+      JWT_USER_SECRET: dev-user-secret
+      ADMIN_CREDENTIALS_JSON: >-
+        [{"username":"admin","password":"admin123"}]
   frontend:
     restart: always
     build:
@@ -19,3 +32,21 @@ services:
       - "80:80"
     links:
       - "backend:local"
+    depends_on:
+      - backend
+  mysql-db:
+    image: mysql:8.0
+    restart: always
+    environment:
+      MYSQL_DATABASE: mocksocialmedia
+      MYSQL_USER: mocksocial
+      MYSQL_PASSWORD: mocksocialpassword
+      MYSQL_ROOT_PASSWORD: rootpassword
+    command: --default-authentication-plugin=mysql_native_password
+    volumes:
+      - mysql-data-dev:/var/lib/mysql
+    ports:
+      - "3307:3306"
+
+volumes:
+  mysql-data-dev:

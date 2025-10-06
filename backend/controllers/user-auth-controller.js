@@ -1,17 +1,14 @@
 import db from "../clients/database-client";
 import page from './create-page';
+import { secretUserConfigurations } from "../utils";
+
 const User = db.User;
 const Template = db.Template;
 const Language = db.Language;
 const UserGlobalTracking = db.UserGlobalTracking;
 const jwt = require("jsonwebtoken");
 
-let secret;
-try {
-  secret = require(__dirname + '/../config-' + process.env.NODE_ENV.toString() + '.json')['secretUser'];
-} catch (error) {
-  console.log('Please specify a config-production.json or config-development.json file!')
-}
+const secret = secretUserConfigurations();
 
 export const signInUser = async (req, res, next) => {
   const { templateId } = req.body;

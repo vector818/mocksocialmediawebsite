@@ -1,11 +1,8 @@
 import db from "../clients/database-client";
+import { secretUserConfigurations } from "../utils";
+
 const jwt = require("jsonwebtoken");
-let secret;
-try {
-  secret = require(__dirname + '/../config-' + process.env.NODE_ENV.toString() + '.json')['secretUser'];
-} catch (error) {
-  console.log('Please specify a config-production.json or config-development.json file!')
-}
+const secret = secretUserConfigurations();
 
 export const verifyUserToken = (req, res, next) => {
   let token = req.headers["x-access-token"];
