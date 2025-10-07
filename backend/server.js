@@ -125,12 +125,16 @@ try {
   // create a express server
   const app = express();
   const environment = process.env.NODE_ENV;
-  // 8080 is for local development
-  // origin: 'http://localhost:8080'
-  // no port or 80 is for local development using decker dec
-  // origin: 'http://localhost'
-  var corsOptions = {
-    origin: environment === 'development' ? ['http://localhost', 'http://localhost:8080'] : ['https://studysocial.media', 'https://www.studysocial.media'],
+  const allowedOriginsEnv = process.env.ALLOWED_ORIGINS;
+  const defaultDevelopmentOrigins = ['http://localhost', 'http://localhost:8080'];
+  const defaultProductionOrigins = ['https://studysocial.media', 'https://www.studysocial.media'];
+  const fallbackOrigins = environment === 'development' ? defaultDevelopmentOrigins : defaultProductionOrigins;
+  const parsedOrigins = allowedOriginsEnv
+    ? allowedOriginsEnv.split(',').map(origin => origin.trim()).filter(Boolean)
+    : [];
+  const allowAnyOrigin = parsedOrigins.includes('*');
+  const corsOptions = {
+    origin: allowAnyOrigin ? true : (parsedOrigins.length ? parsedOrigins : fallbackOrigins),
   };
 
   app.use(cors(corsOptions));

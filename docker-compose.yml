@@ -22,11 +22,14 @@ services:
       JWT_USER_SECRET: change-me-user-secret
       ADMIN_CREDENTIALS_JSON: >-
         [{"username":"admin","password":"admin123"}]
+      ALLOWED_ORIGINS: https://studysocial.media,https://www.studysocial.media
   frontend:
     restart: always
     build:
       context: ./frontend
       dockerfile: ./Dockerfile
+      args:
+        REACT_APP_API_BASE_URL: "/api"
     volumes:
       - /etc/letsencrypt/:/etc/letsencrypt/
     ports:

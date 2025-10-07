@@ -1,5 +1,10 @@
 # multi-stage docker for build and then run production specific
+ARG REACT_APP_API_BASE_URL="https://studysocial.media/api"
+
 FROM node:18.14.0-alpine as builder
+
+ARG REACT_APP_API_BASE_URL
+ENV REACT_APP_API_BASE_URL=$REACT_APP_API_BASE_URL
 
 # this will be temporary working directory
 WORKDIR /app/frontend
@@ -36,6 +41,9 @@ RUN rm -rf node_modules/swagger-ui-dist/*.map
 
 # final stage
 FROM nginx:alpine
+
+ARG REACT_APP_API_BASE_URL
+ENV REACT_APP_API_BASE_URL=$REACT_APP_API_BASE_URL
 
 COPY ./nginx.conf /etc/nginx/conf.d/default.conf
 

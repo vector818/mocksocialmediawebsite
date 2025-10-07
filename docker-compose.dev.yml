@@ -23,11 +23,14 @@ services:
       JWT_USER_SECRET: dev-user-secret
       ADMIN_CREDENTIALS_JSON: >-
         [{"username":"admin","password":"admin123"}]
+      ALLOWED_ORIGINS: http://localhost,http://localhost:8080
   frontend:
     restart: always
     build:
       context: ./frontend
       dockerfile: ./Dockerfile.dev
+      args:
+        REACT_APP_API_BASE_URL: "/api"
     ports:
       - "80:80"
     links:

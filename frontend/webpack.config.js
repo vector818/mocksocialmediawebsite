@@ -85,8 +85,9 @@ module.exports = function(_env, argv) {
         "process.env.NODE_ENV": JSON.stringify(
           isProduction ? "production" : "development"
         ),
-        "process.env.IP_ADDRESS": JSON.stringify(
-          isProduction ? "3.97.196.198" : "localhost"
+        "process.env.REACT_APP_API_BASE_URL": JSON.stringify(
+          process.env.REACT_APP_API_BASE_URL ||
+          (isProduction ? "https://studysocial.media/api" : "http://localhost:8081/api")
         ),
       })
     ].filter(Boolean),
