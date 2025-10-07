@@ -2,15 +2,20 @@
 
 > **Fork information:**  
 > This repository is a fork of [arvinsroom/mocksocialmediawebsite](https://github.com/arvinsroom/mocksocialmediawebsite) by Arvin Jagayat.  
-> The only changes made here are to enable running the entire service (frontend, backend, and MySQL database) fully in Docker containers, including MySQL running in Docker.  
+> The changes made here allow running the frontend and backend in Docker while connecting to an external MySQL instance (e.g., Amazon RDS).  
 > All core functionality and documentation remain unchanged.
 
 ---
 
-## Running the project fully in Docker
+## Running the project with an external MySQL database
 
-You can run the whole service (frontend, backend, and MySQL) using Docker Compose.  
+You can run the frontend and backend with Docker Compose while pointing to a managed MySQL service.  
 There are two configurations available:
+
+### Prepare environment
+
+1. Copy `.env.example` to `.env`.
+2. Fill in the Amazon RDS (or other managed MySQL) connection details.
 
 ### Development mode
 
@@ -19,7 +24,7 @@ docker-compose -f docker-compose.dev.yml up --build
 ```
 
 - The backend and frontend will run in development mode.
-- MySQL database will run in a Docker container.
+- The backend connects to the database specified in your `.env`.
 - Access the frontend at [http://localhost](http://localhost).
 
 ### Production mode
@@ -29,7 +34,7 @@ docker-compose up --build
 ```
 
 - The backend and frontend will run in production mode.
-- MySQL database will run in a Docker container.
+- The backend connects to the database specified in your `.env`.
 - Access the frontend at [http://localhost](http://localhost) or [https://localhost](https://localhost) (if SSL is configured).
 
 ---
