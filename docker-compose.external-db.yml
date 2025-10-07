@@ -1,0 +1,40 @@
+﻿# Compose stack for running backend/frontend with an external MySQL instance in production
+version: '3'
+
+services:
+  backend:
+    restart: always
+    build:
+      context: ./backend
+      dockerfile: ./Dockerfile
+    ports:
+      - "8081:8081"
+    environment:
+      NODE_ENV: production
+      DB_HOST: ${EXTERNAL_DB_HOST}
+      DB_PORT: ${EXTERNAL_DB_PORT:-3306}
+      DB_NAME: ${EXTERNAL_DB_NAME}
+      DB_USERNAME: ${EXTERNAL_DB_USERNAME}
+      DB_PASSWORD: ${EXTERNAL_DB_PASSWORD}
+      DB_DIALECT: mysql
+      JWT_SECRET: change-me-admin-secret
+      JWT_USER_SECRET: change-me-user-secret
+      ADMIN_CREDENTIALS_JSON: >-
+        [{"username":"admin","password":"admin123"}]
+      ALLOWED_ORIGINS: https://studysocial.media,https://www.studysocial.media
+  frontend:
+    restart: always
+    build:
+      context: ./frontend
+      dockerfile: ./Dockerfile
+      args:
+        REACT_APP_API_BASE_URL: "/api"
+    volumes:
+      - /etc/letsencrypt/:/etc/letsencrypt/
+    ports:
+      - "80:80"
+      - "443:443"
+    links:
+      - "backend:be"
+    depends_on:
+      - backend
