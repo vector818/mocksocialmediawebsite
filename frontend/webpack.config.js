@@ -88,7 +88,6 @@ module.exports = function(_env, argv) {
         "process.env.IP_ADDRESS": JSON.stringify(
           isProduction ? "3.97.196.198" : "localhost"
         ),
-        "process.env.API_BASE_URL": JSON.stringify(process.env.API_BASE_URL || ""),
       })
     ].filter(Boolean),
     optimization: {

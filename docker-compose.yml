@@ -20,7 +20,6 @@ services:
       JWT_USER_SECRET: change-me-user-secret
       ADMIN_CREDENTIALS_JSON: >-
         [{"username":"admin","password":"admin123"}]
-      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-}
   frontend:
     restart: always
     build:
