@@ -69,6 +69,21 @@ const testConnection = async () => {
   }
 }
 
+const defaultDevCorsOrigins = ['http://localhost', 'http://localhost:8080'];
+const defaultProdCorsOrigins = ['https://studysocial.media', 'https://www.studysocial.media'];
+
+const resolveCorsOrigins = () => {
+  const envOrigins = process.env.CORS_ALLOWED_ORIGINS;
+  if (envOrigins && envOrigins.trim()) {
+    return envOrigins
+      .split(',')
+      .map((origin) => origin.trim())
+      .filter(Boolean);
+  }
+
+  const nodeEnv = process.env.NODE_ENV;
+  return nodeEnv === 'development' ? defaultDevCorsOrigins : defaultProdCorsOrigins;
+};
 
 const checkAndCreateAdmins = async () => {
   let transaction;
@@ -130,7 +145,7 @@ try {
   // no port or 80 is for local development using decker dec
   // origin: 'http://localhost'
   var corsOptions = {
-    origin: environment === 'development' ? ['http://localhost', 'http://localhost:8080'] : ['https://studysocial.media', 'https://www.studysocial.media'],
+    origin: resolveCorsOrigins(),
   };
 
   app.use(cors(corsOptions));

@@ -16,6 +16,8 @@ There are two configurations available:
 
 1. Copy `.env.example` to `.env`.
 2. Fill in the Amazon RDS (or other managed MySQL) connection details.
+3. Set `CORS_ALLOWED_ORIGINS` to the public URL of the frontend (comma separated for multiple origins).
+4. Optionally set `API_BASE_URL` if the frontend should reach the API at a different origin than the one serving the web app (leave empty to default to `<current-origin>/api`).
 
 ### Development mode
 
