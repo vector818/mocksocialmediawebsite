@@ -228,6 +228,13 @@ export const WINDOW_GLOBAL = Object.freeze({
   RELOAD_ALERT_MESSAGE: 'If you reload this page, you might loose the data, Are you sure?'
 });
 
+export const DEBUG_NEXT_BUTTON_DELAY_MS = 0;
+
+export const waitForDebugDelay = async (delay = DEBUG_NEXT_BUTTON_DELAY_MS) => {
+  if (!delay || delay <= 0) return;
+  await new Promise(resolve => setTimeout(resolve, delay));
+};
+
 export const TW_TRANSLATIONS_DEFAULT = Object.freeze({
   HOME: 'Home',
   EXPLORE: 'Explore',

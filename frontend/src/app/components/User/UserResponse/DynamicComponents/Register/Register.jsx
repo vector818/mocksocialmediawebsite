@@ -10,11 +10,13 @@ import { setRegisterMetaData } from '../../../../../actions/userRegister';
 import { 
   USER_TRANSLATIONS_DEFAULT, 
   WINDOW_GLOBAL,
-  USER_REGISTER
+  USER_REGISTER,
+  waitForDebugDelay
  } from '../../../../../constants';
 import cloneDeep from 'lodash/cloneDeep';
 import { IconCloudUpload, IconChevronRight } from '@tabler/icons-react';
 import RenderRichTextArea from '../../../../Common/UserCommon/RenderRichTextArea';
+import Progress from '../../../../Common/Progress';
 import "./Register.css";
 
 const regex = /^@?[A-Za-z0-9\_]+$/i;
@@ -25,33 +27,42 @@ const Register = ({ data }) => {
   const [handleValidation, setHandleValidation] = useState(true);
   // const [avatar, setAvatar] = useState("");
   const [registerStateRes, setRegisterStateRes] = useState({});
+  const [isLoading, setIsLoading] = useState(true);
 
   const dispatch = useDispatch();
   const classes = useStyles();
 
   const fetch = async () => {
-    const ret = await getUserRegisterDetails(data._id);
-    const registerStateArr = ret.data?.response || [];
-    // create a dynamic normalized response
-    if (registerStateArr && registerStateArr.length > 0) {
-      const response = {};
-      for (let i = 0; i < registerStateArr.length; i++) {
-        response[registerStateArr[i]._id] = {
-          displayName: registerStateArr[i].displayName,
-          referenceName: registerStateArr[i].referenceName,
-          required: registerStateArr[i].required,
-          storeResponse: registerStateArr[i].storeResponse,
-          value: ""
-        };
-        if (registerStateArr[i].type === 'IMAGE') {
+    try {
+      setIsLoading(true);
+      const ret = await getUserRegisterDetails(data._id);
+      const registerStateArr = ret.data?.response || [];
+      // create a dynamic normalized response
+      if (registerStateArr && registerStateArr.length > 0) {
+        const response = {};
+        for (let i = 0; i < registerStateArr.length; i++) {
           response[registerStateArr[i]._id] = {
-            ...response[registerStateArr[i]._id],
-            avatar: ""
+            displayName: registerStateArr[i].displayName,
+            referenceName: registerStateArr[i].referenceName,
+            required: registerStateArr[i].required,
+            storeResponse: registerStateArr[i].storeResponse,
+            value: ""
+          };
+          if (registerStateArr[i].type === 'IMAGE') {
+            response[registerStateArr[i]._id] = {
+              ...response[registerStateArr[i]._id],
+              avatar: ""
+            }
           }
         }
+        await setRegisterStateRes(response);
       }
-      await setRegisterStateRes(response);
       await setRegisterState(registerStateArr);
+    } catch (error) {
+      dispatch(showErrorSnackbar((translations?.error) || USER_TRANSLATIONS_DEFAULT.ERROR));
+    } finally {
+      await waitForDebugDelay();
+      setIsLoading(false);
     }
   };
 
@@ -232,21 +243,24 @@ const Register = ({ data }) => {
   return (
   <>
       {data?.richText && <RenderRichTextArea richText={data.richText}/>}
-      {registerState?.length > 0 && registerState.map(field => (
+      {isLoading && <Progress />}
+      {!isLoading && registerState?.length > 0 && registerState.map(field => (
         <div key={field._id}>
           {renderDynamicInput(field)}
         </div>
       ))}
-      <Button
-        type="submit"
-        variant="contained"
-        color="primary"
-        onClick={handleSubmit}
-        className={classes.submit}
-        endIcon={<IconChevronRight />}
-      >
-        {translations?.next || "NEXT"}
-      </Button>
+      {!isLoading && (
+        <Button
+          type="submit"
+          variant="contained"
+          color="primary"
+          onClick={handleSubmit}
+          className={classes.submit}
+          endIcon={<IconChevronRight />}
+        >
+          {translations?.next || "NEXT"}
+        </Button>
+      )}
       </>
   );
 };

@@ -7,19 +7,28 @@ import useStyles from '../../../../style';
 import "./Finish.css";
 import { updateFlowActiveState } from '../../../../../actions/flowState';
 import { IconChevronRight } from '@tabler/icons-react';
-import { USER_TRANSLATIONS_DEFAULT, WINDOW_GLOBAL } from '../../../../../constants';
+import { USER_TRANSLATIONS_DEFAULT, WINDOW_GLOBAL, waitForDebugDelay } from '../../../../../constants';
+import Progress from '../../../../Common/Progress';
 
 const Finish = ({ data }) => {
   const [finishObj, setFinishObj] = useState(null);
   const dispatch = useDispatch();
   const classes = useStyles();
   const { isLoggedInUser, translations } = useSelector(state => state.userAuth);
+  const [isLoading, setIsLoading] = useState(true);
 
   const fetch = async () => {
-    const ret = await getUserFinishDetails(data._id);
-    const obj = ret.data.data || null;// redirection Link and text to render
-
-    await setFinishObj(obj);
+    try {
+      setIsLoading(true);
+      const ret = await getUserFinishDetails(data._id);
+      const obj = ret.data.data || null;// redirection Link and text to render
+      await setFinishObj(obj);
+    } catch (error) {
+      await setFinishObj(null);
+    } finally {
+      await waitForDebugDelay();
+      setIsLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -42,7 +51,8 @@ const Finish = ({ data }) => {
 
   return (
    <>
-      {finishObj ? 
+      {isLoading && <Progress />}
+      {!isLoading && finishObj ? 
         <>
           <p className='finishText'>{finishObj.text ? finishObj.text : ""}</p>
           {finishObj.redirectionLink &&
@@ -55,16 +65,18 @@ const Finish = ({ data }) => {
         </>
       : null}
 
-      <Button
-        type="submit"
-        variant="contained"
-        color="primary"
-        onClick={handleSubmit}
-        className={classes.submit}
-        endIcon={<IconChevronRight />}
-      >
-        {translations?.next || "NEXT"}
-      </Button>
+      {!isLoading && (
+        <Button
+          type="submit"
+          variant="contained"
+          color="primary"
+          onClick={handleSubmit}
+          className={classes.submit}
+          endIcon={<IconChevronRight />}
+        >
+          {translations?.next || "NEXT"}
+        </Button>
+      )}
     </>
   );
 };

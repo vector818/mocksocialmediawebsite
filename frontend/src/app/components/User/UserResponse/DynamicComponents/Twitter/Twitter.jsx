@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import {
   getFacebookPostsCount,
@@ -12,19 +12,23 @@ import { IconChevronRight } from '@tabler/icons-react';
 import Sidebar from './Sidebar/Sidebar';
 import Feed from './Feed/Feed';
 import TweetBox from './Feed/TweetBox/TweetBox';
-import { WINDOW_GLOBAL, TW_TRANSLATIONS_DEFAULT } from '../../../../../constants';
+import { WINDOW_GLOBAL, TW_TRANSLATIONS_DEFAULT, waitForDebugDelay } from '../../../../../constants';
 
 import "./Twitter.css";
+import Progress from '../../../../Common/Progress';
 
 const Twitter = ({ data }) => {
   const { isLoggedInUser, translations, languageName } = useSelector(state => state.userAuth);
   const totalPostCount = useSelector(state => state.socialMedia.totalPostCount);
   const socialMediaTranslations = useSelector(state => state.socialMedia.socialMediaTranslations);
+  const isFeedLoading = useSelector(state => state.socialMedia.isLoading);
 
   const dispatch = useDispatch();
   const classes = useStyles();
+  const [isLoading, setIsLoading] = useState(true);
 
   const fetch = async () => {
+    setIsLoading(true);
     // clear old social media state
     dispatch(clearFacebookState());
     // fetch all social media Ids and their counts
@@ -35,7 +39,14 @@ const Twitter = ({ data }) => {
       order: data.pageDataOrder,
       language: languageName,
     }
-    dispatch(getFacebookPostsCount(getRequest));
+    try {
+      await dispatch(getFacebookPostsCount(getRequest));
+    } catch (error) {
+      // errors are surfaced via snackbar in the action creator
+    } finally {
+      await waitForDebugDelay();
+      setIsLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -77,17 +88,21 @@ const Twitter = ({ data }) => {
             <Feed omitInteractionBar={data?.omitInteractionBar || false}/> 
           : <p>No Posts Exists!</p>}
 
+          {(isLoading || isFeedLoading) && <Progress />}
+
           <div className="twitterNextScreen">
-            <Button
-              type="submit"
-              variant="contained"
-              color="primary"
-              onClick={handleSubmit}
-              className={classes.submit}
-              endIcon={<IconChevronRight />}
-              >
-              {translations?.next || "NEXT"}
-            </Button>
+            {!(isLoading || isFeedLoading) && (
+              <Button
+                type="submit"
+                variant="contained"
+                color="primary"
+                onClick={handleSubmit}
+                className={classes.submit}
+                endIcon={<IconChevronRight />}
+                >
+                {translations?.next || "NEXT"}
+              </Button>
+            )}
           </div>
         </div>
       </div>

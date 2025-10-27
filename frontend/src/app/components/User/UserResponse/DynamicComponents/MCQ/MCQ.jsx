@@ -10,11 +10,11 @@ import { updateFlowActiveState } from '../../../../../actions/flowState';
 import "./MCQ.css";
 import { IconChevronRight } from '@tabler/icons-react';
 import Progress from '../../../../Common/Progress';
-import { USER_TRANSLATIONS_DEFAULT, WINDOW_GLOBAL } from '../../../../../constants';
+import { USER_TRANSLATIONS_DEFAULT, WINDOW_GLOBAL, waitForDebugDelay } from '../../../../../constants';
 import RenderRichTextArea from '../../../../Common/UserCommon/RenderRichTextArea';
 
 const MCQ = ({ data }) => {
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [mcqQuestions, setMcqQuestions] = useState(null);
   const [mcqRadioResponse, setMcqRadioResponse] = useState(null);
   const [mcqCheckResponse, setMcqCheckResponse] = useState(null);
@@ -57,8 +57,10 @@ const MCQ = ({ data }) => {
         // set this last
         await setMcqQuestions(resultArr);
       }
+      await waitForDebugDelay();
       setIsLoading(false);
     } catch (error) {
+      await waitForDebugDelay();
       setIsLoading(false);
       dispatch(showErrorSnackbar((translations?.error) || USER_TRANSLATIONS_DEFAULT.ERROR));
     }
@@ -184,16 +186,18 @@ const MCQ = ({ data }) => {
         </div>
       )) : null}
       {isLoading && <Progress />}
-      <Button
-        type="submit"
-        variant="contained"
-        color="primary"
-        onClick={handleSubmit}
-        className={classes.submit}
-        endIcon={<IconChevronRight />}
-      >
-        {translations?.next || "NEXT"}
-      </Button>
+      {!isLoading && (
+        <Button
+          type="submit"
+          variant="contained"
+          color="primary"
+          onClick={handleSubmit}
+          className={classes.submit}
+          endIcon={<IconChevronRight />}
+        >
+          {translations?.next || "NEXT"}
+        </Button>
+      )}
    </>
   )
 };

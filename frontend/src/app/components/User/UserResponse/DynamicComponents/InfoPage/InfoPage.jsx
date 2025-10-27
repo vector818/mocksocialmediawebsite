@@ -17,7 +17,7 @@ import { updateUserMain } from '../../../../../actions/user';
 import { updateFlowActiveState } from '../../../../../actions/flowState';
 import { IconChevronRight } from '@tabler/icons-react';
 import Progress from '../../../../Common/Progress';
-import { USER_TRANSLATIONS_DEFAULT, WINDOW_GLOBAL } from '../../../../../constants';
+import { USER_TRANSLATIONS_DEFAULT, WINDOW_GLOBAL, waitForDebugDelay } from '../../../../../constants';
 import RenderRichTextArea from '../../../../Common/UserCommon/RenderRichTextArea';
 import './InfoPage.css';
 
@@ -25,7 +25,7 @@ const InfoPage = ({ data }) => {
   const [infoDetails, setInfoDetails] = useState(null);
   const [consentRes, setConsentRes] = useState('');
   const { isLoggedInUser, translations } = useSelector(state => state.userAuth);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   const [responseCode, setResponseCode] = useState(null);
 
   const [fakeActionSocialMediaPosts, setFakeActionSocialMediaPosts] = useState([]);
@@ -52,8 +52,10 @@ const InfoPage = ({ data }) => {
         setFakeShareSocialMediaPosts(response?.sharePostsData || []); 
       }
       await setInfoDetails(obj);
+      await waitForDebugDelay();
       setIsLoading(false);
     } catch (error) {
+      await waitForDebugDelay();
       setIsLoading(false);
       dispatch(showErrorSnackbar((translations?.error) || USER_TRANSLATIONS_DEFAULT.ERROR));
     }
@@ -155,17 +157,17 @@ const InfoPage = ({ data }) => {
         </div>
       }
 
-      {infoDetails?.isFinish !== true &&
-      <Button
-        type="submit"
-        variant="contained"
-        color="primary"
-        onClick={handleSubmit}
-        className={classes.submit}
-        endIcon={<IconChevronRight />}
-      >
-        {translations?.next || "NEXT"}
-      </Button>
+      {!isLoading && infoDetails?.isFinish !== true &&
+        <Button
+          type="submit"
+          variant="contained"
+          color="primary"
+          onClick={handleSubmit}
+          className={classes.submit}
+          endIcon={<IconChevronRight />}
+        >
+          {translations?.next || "NEXT"}
+        </Button>
       }
    </>
   );
