@@ -17,7 +17,7 @@ import { updateUserMain } from '../../../../../actions/user';
 import { updateFlowActiveState } from '../../../../../actions/flowState';
 import { IconChevronRight } from '@tabler/icons-react';
 import Progress from '../../../../Common/Progress';
-import { USER_TRANSLATIONS_DEFAULT, WINDOW_GLOBAL, waitForDebugDelay } from '../../../../../constants';
+import { USER_TRANSLATIONS_DEFAULT, WINDOW_GLOBAL } from '../../../../../constants';
 import RenderRichTextArea from '../../../../Common/UserCommon/RenderRichTextArea';
 import './InfoPage.css';
 
@@ -52,10 +52,8 @@ const InfoPage = ({ data }) => {
         setFakeShareSocialMediaPosts(response?.sharePostsData || []); 
       }
       await setInfoDetails(obj);
-      await waitForDebugDelay();
       setIsLoading(false);
     } catch (error) {
-      await waitForDebugDelay();
       setIsLoading(false);
       dispatch(showErrorSnackbar((translations?.error) || USER_TRANSLATIONS_DEFAULT.ERROR));
     }

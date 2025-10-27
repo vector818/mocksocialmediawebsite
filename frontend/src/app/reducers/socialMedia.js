@@ -51,7 +51,7 @@ export default function (state = initialState, action) {
         metaData: {},
         allIds: [],
         isLoading: false,
-        finish: false,
+        finish: payload.totalPostIds && payload.totalPostIds.length === 0,
         socialMediaTranslations: payload.socialMediaTranslations || null,
         authors: payload.authors,
       };
@@ -81,16 +81,13 @@ export default function (state = initialState, action) {
         }
 
       case UPDATE_FACEBOOK_PAGE_STATE:
-        let nextCurrentPostPage = state.currentPostPage;
-        let finish = false;
-        if ((nextCurrentPostPage+1) * 5 < state.totalPostCount) {
-          nextCurrentPostPage++;
-        } else {
-          finish = true;
-        }
+        const totalItems = state.totalPostIds ? state.totalPostIds.length : 0;
+        const nextPage = state.currentPostPage + 1;
+        const fetchedCount = nextPage * state.postEachPage;
+        const finish = totalItems === 0 || fetchedCount >= totalItems;
         return {
           ...state,
-          currentPostPage: nextCurrentPostPage,
+          currentPostPage: nextPage,
           finish,
         };
 

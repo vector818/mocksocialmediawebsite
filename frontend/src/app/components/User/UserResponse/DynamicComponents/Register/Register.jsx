@@ -10,8 +10,7 @@ import { setRegisterMetaData } from '../../../../../actions/userRegister';
 import { 
   USER_TRANSLATIONS_DEFAULT, 
   WINDOW_GLOBAL,
-  USER_REGISTER,
-  waitForDebugDelay
+  USER_REGISTER
  } from '../../../../../constants';
 import cloneDeep from 'lodash/cloneDeep';
 import { IconCloudUpload, IconChevronRight } from '@tabler/icons-react';
@@ -61,7 +60,6 @@ const Register = ({ data }) => {
     } catch (error) {
       dispatch(showErrorSnackbar((translations?.error) || USER_TRANSLATIONS_DEFAULT.ERROR));
     } finally {
-      await waitForDebugDelay();
       setIsLoading(false);
     }
   };

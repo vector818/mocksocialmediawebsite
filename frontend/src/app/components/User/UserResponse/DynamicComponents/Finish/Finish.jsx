@@ -7,7 +7,7 @@ import useStyles from '../../../../style';
 import "./Finish.css";
 import { updateFlowActiveState } from '../../../../../actions/flowState';
 import { IconChevronRight } from '@tabler/icons-react';
-import { USER_TRANSLATIONS_DEFAULT, WINDOW_GLOBAL, waitForDebugDelay } from '../../../../../constants';
+import { USER_TRANSLATIONS_DEFAULT, WINDOW_GLOBAL } from '../../../../../constants';
 import Progress from '../../../../Common/Progress';
 
 const Finish = ({ data }) => {
@@ -26,7 +26,6 @@ const Finish = ({ data }) => {
     } catch (error) {
       await setFinishObj(null);
     } finally {
-      await waitForDebugDelay();
       setIsLoading(false);
     }
   };

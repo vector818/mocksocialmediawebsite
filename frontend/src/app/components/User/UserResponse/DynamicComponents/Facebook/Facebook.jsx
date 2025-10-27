@@ -12,20 +12,24 @@ import { updateFlowActiveState } from '../../../../../actions/flowState';
 import { Button, Container } from '@material-ui/core';
 import StoryCreate from "./Feed/StoryCreate/StoryCreate";
 import { IconChevronRight } from '@tabler/icons-react';
-import { WINDOW_GLOBAL, waitForDebugDelay } from '../../../../../constants';
+import { WINDOW_GLOBAL } from '../../../../../constants';
 import Progress from '../../../../Common/Progress';
 
 const Facebook = ({ data }) => {
   const { isLoggedInUser, translations, languageName } = useSelector(state => state.userAuth);
   const totalPostCount = useSelector(state => state.socialMedia.totalPostCount);
   const isFeedLoading = useSelector(state => state.socialMedia.isLoading);
+  const totalPostIds = useSelector(state => state.socialMedia.totalPostIds);
+  const isFeedFinished = useSelector(state => state.socialMedia.finish);
 
   const dispatch = useDispatch();
   const classes = useStyles();
   const [isLoading, setIsLoading] = useState(true);
+  const [hasInitialFetchError, setHasInitialFetchError] = useState(false);
 
   const fetch = async () => {
     setIsLoading(true);
+    setHasInitialFetchError(false);
     dispatch(clearFacebookState());
     // fetch all facebook Ids and their counts
     const getRequest = {
@@ -39,8 +43,8 @@ const Facebook = ({ data }) => {
       await dispatch(getFacebookPostsCount(getRequest));
     } catch (error) {
       // errors are surfaced via snackbar in the action creator
+      setHasInitialFetchError(true);
     } finally {
-      await waitForDebugDelay();
       setIsLoading(false);
     }
   };
@@ -58,6 +62,11 @@ const Facebook = ({ data }) => {
     dispatch(updateFlowActiveState());
   };
 
+  const canShowNextButton =
+    !isLoading &&
+    !isFeedLoading &&
+    (hasInitialFetchError || isFeedFinished || (totalPostIds && totalPostIds.length === 0));
+
   return (
     <>
       <Container component="main" maxWidth="sm" className="facebookCard">
@@ -69,10 +78,8 @@ const Facebook = ({ data }) => {
           : <p>No Posts Exists!</p>}
         </div>
 
-        {(isLoading || isFeedLoading) && <Progress />}
-
         <div className="fbNextBotton">
-          {!(isLoading || isFeedLoading) && (
+          {canShowNextButton && (
             <Button
               type="submit"
               variant="contained"

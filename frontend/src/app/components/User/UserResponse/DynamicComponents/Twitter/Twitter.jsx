@@ -12,7 +12,7 @@ import { IconChevronRight } from '@tabler/icons-react';
 import Sidebar from './Sidebar/Sidebar';
 import Feed from './Feed/Feed';
 import TweetBox from './Feed/TweetBox/TweetBox';
-import { WINDOW_GLOBAL, TW_TRANSLATIONS_DEFAULT, waitForDebugDelay } from '../../../../../constants';
+import { WINDOW_GLOBAL, TW_TRANSLATIONS_DEFAULT } from '../../../../../constants';
 
 import "./Twitter.css";
 import Progress from '../../../../Common/Progress';
@@ -22,13 +22,17 @@ const Twitter = ({ data }) => {
   const totalPostCount = useSelector(state => state.socialMedia.totalPostCount);
   const socialMediaTranslations = useSelector(state => state.socialMedia.socialMediaTranslations);
   const isFeedLoading = useSelector(state => state.socialMedia.isLoading);
+  const totalPostIds = useSelector(state => state.socialMedia.totalPostIds);
+  const isFeedFinished = useSelector(state => state.socialMedia.finish);
 
   const dispatch = useDispatch();
   const classes = useStyles();
   const [isLoading, setIsLoading] = useState(true);
+  const [hasInitialFetchError, setHasInitialFetchError] = useState(false);
 
   const fetch = async () => {
     setIsLoading(true);
+    setHasInitialFetchError(false);
     // clear old social media state
     dispatch(clearFacebookState());
     // fetch all social media Ids and their counts
@@ -43,8 +47,8 @@ const Twitter = ({ data }) => {
       await dispatch(getFacebookPostsCount(getRequest));
     } catch (error) {
       // errors are surfaced via snackbar in the action creator
+      setHasInitialFetchError(true);
     } finally {
-      await waitForDebugDelay();
       setIsLoading(false);
     }
   };
@@ -61,6 +65,11 @@ const Twitter = ({ data }) => {
     e.preventDefault();
     dispatch(updateFlowActiveState());
   };
+
+  const canShowNextButton =
+    !isLoading &&
+    !isFeedLoading &&
+    (hasInitialFetchError || isFeedFinished || (totalPostIds && totalPostIds.length === 0));
 
   return (
     <>
@@ -88,10 +97,8 @@ const Twitter = ({ data }) => {
             <Feed omitInteractionBar={data?.omitInteractionBar || false}/> 
           : <p>No Posts Exists!</p>}
 
-          {(isLoading || isFeedLoading) && <Progress />}
-
           <div className="twitterNextScreen">
-            {!(isLoading || isFeedLoading) && (
+            {canShowNextButton && (
               <Button
                 type="submit"
                 variant="contained"
