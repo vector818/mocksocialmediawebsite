@@ -15,6 +15,7 @@ const Finish = ({ data }) => {
   const dispatch = useDispatch();
   const classes = useStyles();
   const { isLoggedInUser, translations } = useSelector(state => state.userAuth);
+  const { flow, active } = useSelector(state => state.flowState);
   const [isLoading, setIsLoading] = useState(true);
 
   const fetch = async () => {
@@ -44,8 +45,21 @@ const Finish = ({ data }) => {
       link : `https://${link}`
   };
 
-  const handleSubmit = () => {
-    dispatch(updateFlowActiveState());
+  const handleSubmit = async () => {
+    const isRedirect = Boolean(finishObj?.redirectionLink);
+    const isLastStep = Array.isArray(flow) && active > -1 && active === flow.length - 1;
+
+    try {
+      await dispatch(updateFlowActiveState());
+      if (isRedirect && isLastStep) {
+        const redirectURL = getRedirectionLink(finishObj.redirectionLink);
+        if (redirectURL) {
+          window.open(redirectURL, '_blank', 'noopener,noreferrer');
+        }
+      }
+    } catch (error) {
+      // noop: error handling is already surfaced via redux snackbar
+    }
   };
 
   return (
