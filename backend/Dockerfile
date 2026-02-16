@@ -1,5 +1,9 @@
-# multi-stage docker for build and then run production specific
+# multi-stage docker for build and then run
+ARG BUILD_ENV=prod
+
 FROM node:18.14.0-alpine as builder
+
+ARG BUILD_ENV
 
 # this will be temporary working directory
 WORKDIR /app/temp
@@ -13,8 +17,8 @@ RUN npm install
 # copy everything for compiling the prod exec
 COPY . .
 
-# build a development executable
-RUN npm run build-prod
+# build the executable
+RUN npm run build-${BUILD_ENV}
 
 # delete dev dependencies
 RUN npm prune --production

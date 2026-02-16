@@ -1,57 +1,62 @@
-version: '3'
-
 services:
   backend:
     restart: always
     build:
       context: ./backend
       dockerfile: ./Dockerfile
+      args:
+        BUILD_ENV: ${BUILD_ENV:-prod}
     depends_on:
-      - mysql-db
+      mysql-db:
+        condition: service_started
+        required: false
     ports:
       - "8081:8081"
     environment:
-      NODE_ENV: production
-      DB_HOST: mysql-db
-      DB_PORT: "3306"
-      DB_NAME: mocksocialmedia
-      DB_USERNAME: mocksocial
-      DB_PASSWORD: mocksocialpassword
-      DB_DIALECT: mysql
-      JWT_SECRET: change-me-admin-secret
-      JWT_USER_SECRET: change-me-user-secret
-      ADMIN_CREDENTIALS_JSON: >-
-        [{"username":"admin","password":"admin123"}]
-      ALLOWED_ORIGINS: https://studysocial.media,https://www.studysocial.media
+      NODE_ENV: ${NODE_ENV}
+      DB_HOST: ${DB_HOST}
+      DB_PORT: ${DB_PORT}
+      DB_NAME: ${DB_NAME}
+      DB_USERNAME: ${DB_USERNAME}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_DIALECT: ${DB_DIALECT}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_USER_SECRET: ${JWT_USER_SECRET}
+      ADMIN_CREDENTIALS_JSON: ${ADMIN_CREDENTIALS_JSON}
+      ALLOWED_ORIGINS: ${ALLOWED_ORIGINS}
   frontend:
     restart: always
     build:
       context: ./frontend
       dockerfile: ./Dockerfile
       args:
-        REACT_APP_API_BASE_URL: "/api"
+        BUILD_ENV: ${BUILD_ENV:-prod}
+        NGINX_CONF: ${NGINX_CONF:-nginx.conf}
+        REACT_APP_API_BASE_URL: ${REACT_APP_API_BASE_URL:-/api}
     volumes:
       - /etc/letsencrypt/:/etc/letsencrypt/
     ports:
       - "80:80"
       - "443:443"
     links:
-      - "backend:be"
+      - "backend:${BACKEND_LINK_ALIAS:-be}"
     depends_on:
       - backend
   mysql-db:
     image: mysql:8.0
     restart: always
+    profiles:
+      - internal-db
     environment:
-      MYSQL_DATABASE: mocksocialmedia
-      MYSQL_USER: mocksocial
-      MYSQL_PASSWORD: mocksocialpassword
-      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
     command: --default-authentication-plugin=mysql_native_password
     volumes:
       - mysql-data:/var/lib/mysql
     ports:
-      - "3306:3306"
+      - "${MYSQL_HOST_PORT:-3306}:3306"
 
 volumes:
   mysql-data:

@@ -1,8 +1,11 @@
-# multi-stage docker for build and then run production specific
-ARG REACT_APP_API_BASE_URL="https://studysocial.media/api"
+# multi-stage docker for build and then run
+ARG BUILD_ENV=prod
+ARG NGINX_CONF=nginx.conf
+ARG REACT_APP_API_BASE_URL="/api"
 
 FROM node:18.14.0-alpine as builder
 
+ARG BUILD_ENV
 ARG REACT_APP_API_BASE_URL
 ENV REACT_APP_API_BASE_URL=$REACT_APP_API_BASE_URL
 
@@ -17,8 +20,8 @@ RUN npm install
 
 COPY . .
 
-# build a development executable
-RUN npm run build-prod
+# build the executable
+RUN npm run build-${BUILD_ENV}
 
 # delete dev dependencies
 RUN npm prune --production
@@ -42,10 +45,11 @@ RUN rm -rf node_modules/swagger-ui-dist/*.map
 # final stage
 FROM nginx:alpine
 
+ARG NGINX_CONF
 ARG REACT_APP_API_BASE_URL
 ENV REACT_APP_API_BASE_URL=$REACT_APP_API_BASE_URL
 
-COPY ./nginx.conf /etc/nginx/conf.d/default.conf
+COPY ./${NGINX_CONF} /etc/nginx/conf.d/default.conf
 
 ## Remove default nginx index page
 RUN rm -rf /usr/share/nginx/html/*
