@@ -15,6 +15,7 @@ ELASTIC_IP_ALLOC_ID="${ELASTIC_IP_ALLOC_ID:-}"
 REGION="${AWS_REGION:-eu-central-1}"
 INSTANCE_NAME="${INSTANCE_NAME:-docker-server}"
 VOLUME_SIZE="${VOLUME_SIZE:-20}"
+ARCH="${ARCH:-x86_64}"
 
 # === VALIDATION ===
 MISSING=()
@@ -47,18 +48,18 @@ if ! command -v aws &> /dev/null; then
   exit 1
 fi
 
-# === FETCH LATEST AMAZON LINUX 2 AMI ===
-echo "Looking for the latest Amazon Linux 2 AMI in region $REGION..."
+# === FETCH LATEST AMAZON LINUX 2023 AMI ===
+echo "Looking for the latest Amazon Linux 2023 AMI ($ARCH) in region $REGION..."
 AMI_ID=$(aws ec2 describe-images \
   --region "$REGION" \
   --owners amazon \
-  --filters "Name=name,Values=amzn2-ami-hvm-*-x86_64-gp2" \
+  --filters "Name=name,Values=al2023-ami-2023.*-${ARCH}" \
              "Name=state,Values=available" \
   --query 'Images | sort_by(@, &CreationDate) | [-1].ImageId' \
   --output text)
 
 if [ -z "$AMI_ID" ] || [ "$AMI_ID" = "None" ]; then
-  echo "Error: Could not find Amazon Linux 2 AMI."
+  echo "Error: Could not find Amazon Linux 2023 AMI."
   exit 1
 fi
 echo "AMI: $AMI_ID"
@@ -67,18 +68,28 @@ echo "AMI: $AMI_ID"
 USER_DATA=$(cat <<'USERDATA'
 #!/bin/bash
 yum update -y
-amazon-linux-extras install docker -y
+
+# Git + htop
+yum install -y git htop
+
+# Docker
+yum install -y docker
 systemctl start docker
 systemctl enable docker
 usermod -aG docker ec2-user
 
-# Docker Compose
+# Docker Compose (V2 plugin) + Buildx
+mkdir -p /usr/local/lib/docker/cli-plugins
 COMPOSE_URL="https://github.com/docker/compose/releases/latest/download/docker-compose-$(uname -s)-$(uname -m)"
-curl -L "$COMPOSE_URL" -o /usr/local/bin/docker-compose
-chmod +x /usr/local/bin/docker-compose
+curl -L "$COMPOSE_URL" -o /usr/local/lib/docker/cli-plugins/docker-compose
+chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
 
-echo "Docker setup complete" > /home/ec2-user/docker-setup-done
-chown ec2-user:ec2-user /home/ec2-user/docker-setup-done
+BUILDX_VERSION=$(curl -s https://api.github.com/repos/docker/buildx/releases/latest | grep '"tag_name"' | sed 's/.*"v\(.*\)".*/\1/')
+curl -L "https://github.com/docker/buildx/releases/download/v${BUILDX_VERSION}/buildx-v${BUILDX_VERSION}.linux-amd64" -o /usr/local/lib/docker/cli-plugins/docker-buildx
+chmod +x /usr/local/lib/docker/cli-plugins/docker-buildx
+
+echo "Setup complete (git, docker, docker-compose)" > /home/ec2-user/setup-done
+chown ec2-user:ec2-user /home/ec2-user/setup-done
 USERDATA
 )
 
@@ -146,5 +157,5 @@ echo "    ssh -i \"$KEY_NAME.pem\" ec2-user@$PUBLIC_IP"
 echo ""
 echo "  Docker is installing in the background (~1-2 min)."
 echo "  Check status:"
-echo "    ssh -i \"$KEY_NAME.pem\" ec2-user@$PUBLIC_IP 'cat ~/docker-setup-done'"
+echo "    ssh -i \"$KEY_NAME.pem\" ec2-user@$PUBLIC_IP 'cat ~/setup-done'"
 echo "============================================"
