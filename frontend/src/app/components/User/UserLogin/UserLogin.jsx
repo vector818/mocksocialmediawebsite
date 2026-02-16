@@ -19,20 +19,24 @@ const UserLogin = () => {
   const { accessCode, participantId } = useParams();
   const [templateId, setTemplateId] = useState("");
 
-  const checkValidity = (id) => {
-    if (id && id.length === 6 && Number(id)) return true;
-    else return false;
-  }
+  const isValidAccessCode = (id) => {
+    return !!(id && id.length === 6 && Number(id));
+  };
+
+  const normalizeParticipantId = (id) => {
+    if (typeof id !== "string") return "";
+    return id.trim();
+  };
 
   const checkTemplateExist = async (code, parId) => {
     // dispatch
-    if (checkValidity(code)) {
+    if (isValidAccessCode(code)) {
       const tempCode = Number(code);
-      if (checkValidity(parId)) {
-        const qualCode = Number(parId);
+      const normalizedParticipantId = normalizeParticipantId(parId);
+      if (normalizedParticipantId) {
         try {
           await dispatch(userLogin(tempCode));
-          await dispatch(updateUserMain({ qualtricsId: qualCode }));
+          await dispatch(updateUserMain({ qualtricsId: normalizedParticipantId }));
           history(`/${accessCode}/user-response`);
         } catch (error) {
           history("/");

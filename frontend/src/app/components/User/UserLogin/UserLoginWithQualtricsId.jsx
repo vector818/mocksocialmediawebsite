@@ -26,18 +26,17 @@ const UserLoginWithQualtricsId = () => {
     };
   }, []);
 
-  const checkValidity = (id) => {
-    if (id && id.length === 6 && Number(id)) return true;
-    else return false;
-  }
+  const hasParticipantId = (id) => {
+    return typeof id === "string" && id.trim().length > 0;
+  };
 
   const handleSubmit = async e => {
     e.preventDefault();
-    if (checkValidity(qualtricsId)) {
+    if (hasParticipantId(qualtricsId)) {
       // send the username and password to the server
-      const qualCode = Number(qualtricsId);
+      const normalizedId = qualtricsId.trim();
       try {
-        await dispatch(updateUserMain({ qualtricsId: qualCode }));
+        await dispatch(updateUserMain({ qualtricsId: normalizedId }));
         history(`/${accessCode}/user-response`);
       } catch (error) {
         // history("/");
