@@ -84,8 +84,13 @@ COMPOSE_URL="https://github.com/docker/compose/releases/latest/download/docker-c
 curl -L "$COMPOSE_URL" -o /usr/local/lib/docker/cli-plugins/docker-compose
 chmod +x /usr/local/lib/docker/cli-plugins/docker-compose
 
+BUILDX_ARCH=$(uname -m)
+case "$BUILDX_ARCH" in
+  x86_64)  BUILDX_ARCH="amd64" ;;
+  aarch64) BUILDX_ARCH="arm64" ;;
+esac
 BUILDX_VERSION=$(curl -s https://api.github.com/repos/docker/buildx/releases/latest | grep '"tag_name"' | sed 's/.*"v\(.*\)".*/\1/')
-curl -L "https://github.com/docker/buildx/releases/download/v${BUILDX_VERSION}/buildx-v${BUILDX_VERSION}.linux-amd64" -o /usr/local/lib/docker/cli-plugins/docker-buildx
+curl -L "https://github.com/docker/buildx/releases/download/v${BUILDX_VERSION}/buildx-v${BUILDX_VERSION}.linux-${BUILDX_ARCH}" -o /usr/local/lib/docker/cli-plugins/docker-buildx
 chmod +x /usr/local/lib/docker/cli-plugins/docker-buildx
 
 echo "Setup complete (git, docker, docker-compose)" > /home/ec2-user/setup-done
