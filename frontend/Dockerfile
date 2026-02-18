@@ -49,7 +49,7 @@ ARG NGINX_CONF
 ARG REACT_APP_API_BASE_URL
 ENV REACT_APP_API_BASE_URL=$REACT_APP_API_BASE_URL
 
-COPY ./${NGINX_CONF} /etc/nginx/conf.d/default.conf
+COPY ./${NGINX_CONF} /etc/nginx/templates/default.conf.template
 
 ## Remove default nginx index page
 RUN rm -rf /usr/share/nginx/html/*
@@ -60,4 +60,6 @@ COPY --from=builder /app/frontend/node_modules /usr/share/nginx/html/node_module
 
 EXPOSE 80 443
 
-ENTRYPOINT ["nginx", "-g", "daemon off;"]
+# envsubst replaces ${DOMAIN}, ${SSL_CERT_PATH}, ${SSL_KEY_PATH} in nginx template at startup
+# $$host etc. are preserved (nginx variables use $ too, so we only substitute our vars)
+CMD ["/bin/sh", "-c", "envsubst '${DOMAIN} ${SSL_CERT_PATH} ${SSL_KEY_PATH}' < /etc/nginx/templates/default.conf.template > /etc/nginx/conf.d/default.conf && nginx -g 'daemon off;'"]

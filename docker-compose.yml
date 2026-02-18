@@ -33,6 +33,10 @@ services:
         BUILD_ENV: ${BUILD_ENV:-prod}
         NGINX_CONF: ${NGINX_CONF:-nginx.conf}
         REACT_APP_API_BASE_URL: ${REACT_APP_API_BASE_URL:-/api}
+    environment:
+      DOMAIN: ${DOMAIN:-localhost}
+      SSL_CERT_PATH: ${SSL_CERT_PATH:-/etc/letsencrypt/live/${DOMAIN}/fullchain.pem}
+      SSL_KEY_PATH: ${SSL_KEY_PATH:-/etc/letsencrypt/live/${DOMAIN}/privkey.pem}
     volumes:
       - /etc/letsencrypt/:/etc/letsencrypt/
     ports:
