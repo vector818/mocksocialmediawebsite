@@ -25,6 +25,7 @@ import userQuesion from './routes/user-question-routes';
 import userAnswer from './routes/user-answer-routes';
 import userMain from './routes/user-main-routes';
 import userTracking from './routes/user-tracking-routes';
+import mediaServe from './controllers/media-serve-controller';
 import { databaseConfigurations, adminCredConfigurations } from './utils';
 
 const mysql = require('mysql2/promise');
@@ -176,6 +177,9 @@ try {
   app.use('/api/media', [verifyToken, isAdmin], media);
   app.use('/api/metrics', [verifyToken, isAdmin], metrics);
   app.use('/api/userposts', [verifyToken, isAdmin], adminUserPost);
+
+  // Media serve endpoint — no auth required (accessed via <img src> tags)
+  app.get('/api/user/facebook/media/:mediaId', mediaServe.getMediaById);
 
   app.use('/api/user/questions', [verifyUserToken, isUser], userQuesion);
   app.use('/api/user/answer', [verifyUserToken, isUser], userAnswer);

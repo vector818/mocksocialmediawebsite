@@ -434,6 +434,7 @@ const getFacebookPostWithDetails = async (req, res, next) => {
         {
           model: Media,
           as: 'attachedMedia',
+          attributes: ['_id', 'mimeType', 'isThumbnail', 'userPostId'],
         }
       ]
     }, { transaction, logging: false });
@@ -445,7 +446,8 @@ const getFacebookPostWithDetails = async (req, res, next) => {
         const result = await Media.findOne({
           where: {
             authorId: item.dataValues.authorId
-          }
+          },
+          attributes: ['_id', 'mimeType', 'authorId'],
         });
         item.dataValues.attachedAuthorPicture = result;
       }

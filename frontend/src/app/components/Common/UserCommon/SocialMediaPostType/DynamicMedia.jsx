@@ -17,8 +17,7 @@ const DynamicMedia = ({
     activateLink
   }) => {
   // we only handle cases for image and videos
-  const [mediaType, setMediaType] = useState(attachedMedia ? attachedMedia.mimeType : null);
-  const [isPhoto, setIsPhoto] = useState(attachedMedia ? attachedMedia.mimeType.indexOf('image') === -1 ? false : true : null);
+  const [isPhoto, setIsPhoto] = useState(attachedMedia ? attachedMedia.mimeType.indexOf('image') !== -1 : null);
   const [showWarningLabel, setShowWarningLabel] = useState(warningLabel === true);
   const [blur, setBlur] = useState(showWarningLabel);
   const imageRef = useRef(null);
@@ -44,15 +43,7 @@ const DynamicMedia = ({
 
   useEffect(() => {
     if (attachedMedia) {
-      window.global = window;
-      window.Buffer = window.Buffer || require('buffer').Buffer;  
-      let bufferd = window.Buffer.from(attachedMedia.media.data);
-      let arraybuffer = Uint8Array.from(bufferd).buffer;
-
-      const image = new Blob([arraybuffer], {
-        type: mediaType
-      });
-      const url = URL.createObjectURL(image);
+      const url = `/api/user/facebook/media/${attachedMedia._id}`;
       if (isPhoto) {
         imageRef.current.src = url;
       }
@@ -68,7 +59,7 @@ const DynamicMedia = ({
           }
         };
         let observer = new IntersectionObserver(handlePlay, options);
-        observer.observe(videoRef.current);  
+        observer.observe(videoRef.current);
       }
     }
   }, []);
@@ -77,7 +68,7 @@ const DynamicMedia = ({
     <>
       {attachedMedia && (
         <div className="postImage">
-          {isPhoto ? 
+          {isPhoto ?
             <>
               <img
                 ref={imageRef}
@@ -89,7 +80,7 @@ const DynamicMedia = ({
                 }}
               />
             </>
-          : 
+          :
             <video
               ref={videoRef}
               controls
@@ -101,7 +92,7 @@ const DynamicMedia = ({
               }}
             />
           }
-          {showWarningLabel && 
+          {showWarningLabel &&
             <div className="mediaOverlay">
               <div>
                 <InfoIcon fontSize="small" style={{
