@@ -1,6 +1,11 @@
 // k6 test profiles: smoke, load, stress
 // Each exports an options object with scenarios and thresholds.
 
+import { INSECURE_SKIP_TLS } from './env.js';
+
+// TLS options (applied to all profiles)
+const tlsOptions = INSECURE_SKIP_TLS ? { insecureSkipTLSVerify: true } : {};
+
 // Per-endpoint thresholds shared across profiles
 const baseThresholds = {
   'http_req_duration{name:login}': ['p(95)<2000'],
@@ -15,6 +20,7 @@ const baseThresholds = {
 
 // Smoke test: 2 VUs, 1 iteration each. Validates that the script works.
 export const smokeOptions = {
+  ...tlsOptions,
   scenarios: {
     smoke: {
       executor: 'per-vu-iterations',
@@ -33,6 +39,7 @@ export const smokeOptions = {
 
 // Light load test: ramp to 50 VUs, sustain for 5 minutes.
 export const loadEasyOptions = {
+  ...tlsOptions,
   scenarios: {
     load_easy: {
       executor: 'ramping-vus',
@@ -56,6 +63,7 @@ export const loadEasyOptions = {
 
 // Load test: ramp to 100 VUs, sustain for 5 minutes.
 export const loadOptions = {
+  ...tlsOptions,
   scenarios: {
     load: {
       executor: 'ramping-vus',
@@ -79,6 +87,7 @@ export const loadOptions = {
 
 // Stress test: ramp to 300 VUs to find the breaking point.
 export const stressOptions = {
+  ...tlsOptions,
   scenarios: {
     stress: {
       executor: 'ramping-vus',
