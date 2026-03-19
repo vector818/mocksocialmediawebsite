@@ -6,6 +6,10 @@ import { Navigate } from 'react-router-dom';
 import useStyles from '../../../../style';
 import "./Finish.css";
 import { updateFlowActiveState } from '../../../../../actions/flowState';
+import { updateUserMain } from '../../../../../actions/user';
+import { userLogout } from '../../../../../actions/userAuth';
+import { trackPageMetaData } from '../../../../../services/user-tracking-service';
+import { getCurrentUTCTime } from '../../../../../utils';
 import { IconChevronRight } from '@tabler/icons-react';
 import { USER_TRANSLATIONS_DEFAULT, WINDOW_GLOBAL } from '../../../../../constants';
 import Progress from '../../../../Common/Progress';
@@ -49,16 +53,31 @@ const Finish = ({ data }) => {
     const isRedirect = Boolean(finishObj?.redirectionLink);
     const isLastStep = Array.isArray(flow) && active > -1 && active === flow.length - 1;
 
-    try {
-      await dispatch(updateFlowActiveState());
-      if (isRedirect && isLastStep) {
-        const redirectURL = getRedirectionLink(finishObj.redirectionLink);
-        if (redirectURL) {
-          window.open(redirectURL, '_blank', 'noopener,noreferrer');
+    if (isRedirect && isLastStep) {
+      // Save data to DB without changing Redux state (no finished=true),
+      // so if navigation is canceled by the browser, user still sees
+      // the Finish page and can retry.
+      try {
+        const pageType = flow[active]?.type;
+        if (pageType === 'FACEBOOK' || pageType === 'TWITTER') {
+          await trackPageMetaData({ finishedAt: getCurrentUTCTime(), pageId: flow[active]._id });
         }
+        await dispatch(updateUserMain({ finishedAt: getCurrentUTCTime() }));
+        await dispatch(userLogout());
+      } catch (error) {
+        // Data may already be saved from a previous attempt — continue to redirect
       }
-    } catch (error) {
-      // noop: error handling is already surfaced via redux snackbar
+      window.onbeforeunload = null;
+      const redirectURL = getRedirectionLink(finishObj.redirectionLink);
+      if (redirectURL) {
+        window.location.href = redirectURL;
+      }
+    } else {
+      try {
+        await dispatch(updateFlowActiveState());
+      } catch (error) {
+        // noop: error handling is already surfaced via redux snackbar
+      }
     }
   };
 
@@ -70,7 +89,7 @@ const Finish = ({ data }) => {
           <p className='finishText'>{finishObj.text ? finishObj.text : ""}</p>
           {finishObj.redirectionLink &&
           <div className='finishLink'>
-            <Link href={getRedirectionLink(finishObj.redirectionLink)} rel="noopener noreferrer" target="_blank">
+            <Link component="button" onClick={handleSubmit}>
               {translations?.click_here_to_continue_to_the_next_part_of_this_study || USER_TRANSLATIONS_DEFAULT.CLICK_TO_CONTINUE_STUDY}
             </Link>
           </div>
